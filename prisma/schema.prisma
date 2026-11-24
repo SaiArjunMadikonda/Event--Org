@@ -1,0 +1,180 @@
+// Community Events & Smart Group Matching Platform — data model.
+// SQLite for the local prototype. The model maps directly onto PostgreSQL (Supabase):
+// change `provider` to "postgresql", point DATABASE_URL at Supabase, and push again.
+// Status/role fields are plain strings (validated in app code) so the schema works on both.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(cuid())
+  name              String
+  email             String   @unique // never shown to other participants
+  city              String   @default("")
+  bio               String   @default("")
+  shareBioWithGroup Boolean  @default(false) // bio shown to group members only if true
+  role              String   @default("PARTICIPANT") // PARTICIPANT | ORGANIZER
+  createdAt         DateTime @default(now())
+
+  interests        UserInterest[]
+  registrations    Registration[]
+  organizedEvents  Event[]           @relation("EventOrganizer")
+  activityRequests ActivityRequest[]
+  groupMemberships GroupMember[]
+  matchingRuns     MatchingRun[]
+  blocksMade       Block[]           @relation("Blocker")
+  blocksReceived   Block[]           @relation("Blocked")
+  reportsMade      Report[]          @relation("Reporter")
+  reportsReceived  Report[]          @relation("ReportedUser")
+}
+
+model Interest {
+  id       String         @id @default(cuid())
+  name     String         @unique
+  category String // e.g. Movies, Food, Sports
+  users    UserInterest[]
+}
+
+model UserInterest {
+  userId     String
+  interestId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interest   Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@id([userId, interestId])
+}
+
+model Event {
+  id                   String   @id @default(cuid())
+  title                String
+  activity             String // short label used for browsing, e.g. "Movies & Dinner"
+  description          String
+  whatToExpect         String   @default("")
+  startsAt             DateTime
+  durationMinutes      Int      @default(120)
+  area                 String // general location, visible to everyone
+  meetingPoint         String // exact place, visible to registered attendees only
+  costEstimate         String   @default("Free")
+  capacity             Int
+  minGroupSize         Int
+  maxGroupSize         Int
+  interestCategory     String? // if set, matching only uses interests from this category
+  registrationQuestion String? // e.g. "Any dietary preferences?"
+  status               String   @default("OPEN") // OPEN | CLOSED | GROUPS_PUBLISHED | CANCELLED
+  organizerId          String
+  createdAt            DateTime @default(now())
+
+  organizer     User           @relation("EventOrganizer", fields: [organizerId], references: [id])
+  registrations Registration[]
+  matchingRuns  MatchingRun[]
+  reports       Report[]
+}
+
+model Registration {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  answer    String   @default("")
+  status    String   @default("REGISTERED") // REGISTERED | CANCELLED
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+}
+
+model MatchingRun {
+  id             String    @id @default(cuid())
+  eventId        String
+  method         String // INTEREST | RANDOM
+  seed           Int
+  minGroupSize   Int // rule used for this run
+  maxGroupSize   Int
+  status         String    @default("PREVIEW") // PREVIEW | PUBLISHED | DISCARDED
+  unassignedJson String    @default("[]") // [{ id, reason }]
+  createdById    String
+  createdAt      DateTime  @default(now())
+  publishedAt    DateTime?
+
+  event     Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdBy User          @relation(fields: [createdById], references: [id])
+  groups    Group[]
+  members   GroupMember[]
+}
+
+model Group {
+  id                  String @id @default(cuid())
+  runId               String
+  number              Int
+  sharedInterestsJson String @default("[]")
+
+  run     MatchingRun   @relation(fields: [runId], references: [id], onDelete: Cascade)
+  members GroupMember[]
+
+  @@unique([runId, number])
+}
+
+model GroupMember {
+  id      String @id @default(cuid())
+  groupId String
+  runId   String
+  userId  String
+
+  group Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  run   MatchingRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Hard rule: nobody is in two groups in the same matching run.
+  @@unique([runId, userId])
+}
+
+model ActivityRequest {
+  id              String   @id @default(cuid())
+  userId          String
+  activity        String
+  experienceLevel String   @default("Any")
+  area            String
+  timeWindow      String
+  budgetMax       Int?
+  groupSizeMin    Int
+  groupSizeMax    Int
+  notes           String   @default("")
+  status          String   @default("NEW") // NEW | REVIEWING | PLANNED | DECLINED
+  organizerNote   String   @default("")
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  blocker User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+}
+
+model Report {
+  id             String   @id @default(cuid())
+  reporterId     String
+  reportedUserId String?
+  eventId        String?
+  reason         String
+  status         String   @default("OPEN") // OPEN | RESOLVED
+  createdAt      DateTime @default(now())
+
+  reporter     User   @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser User?  @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: SetNull)
+  event        Event? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+}
