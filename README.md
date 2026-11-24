@@ -13,9 +13,12 @@ It also includes a structured **Suggest an Activity** form that organizers revie
 
 Requires Node.js 20+ (built and tested with Node 26).
 
+The database is Supabase Postgres. Copy `.env.example` to `.env` and fill in your project's two connection
+strings (Supabase dashboard → **Connect** → **ORM** → **Prisma**), replacing `[YOUR-PASSWORD]` in both.
+
 ```powershell
 npm install
-npm run db:setup   # creates prisma/dev.db and fills it with fictional demo data
+npm run db:setup   # creates the tables in Supabase and fills them with fictional demo data
 npm run dev        # http://localhost:3000
 ```
 
@@ -112,7 +115,6 @@ and every part is clearly our own. No eventOS code is included.
 | Prototype | Before real users |
 |---|---|
 | Demo sign-in picker, no passwords (cookie holds the user id) | Supabase Auth |
-| SQLite file database | Supabase Postgres: set `provider = "postgresql"` in the schema and point `DATABASE_URL` at Supabase |
 | Organizer role set in the seed data | Organizer onboarding and approval |
 | Times shown in US Central time | Per-event time zone |
 | Activity requests reviewed manually | Matching similar requests and suggesting events |

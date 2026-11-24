@@ -1,15 +1,16 @@
 // Community Events & Smart Group Matching Platform — data model.
-// SQLite for the local prototype. The model maps directly onto PostgreSQL (Supabase):
-// change `provider` to "postgresql", point DATABASE_URL at Supabase, and push again.
-// Status/role fields are plain strings (validated in app code) so the schema works on both.
+// Runs on Supabase Postgres. DATABASE_URL is the pooled connection the app uses;
+// DIRECT_URL is the direct connection Prisma uses to create and change tables.
+// Status/role fields are plain strings (validated in app code).
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
