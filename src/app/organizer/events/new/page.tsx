@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireOrganizer } from "@/lib/session";
 import { INTEREST_CATEGORIES } from "@/lib/interests";
 import { Flash, type SearchParams } from "@/components/Flash";
+import { FormMemory } from "@/components/FormMemory";
 import { createEvent } from "../../../actions/organizer";
 
 export default async function NewEventPage({ searchParams }: { searchParams: SearchParams }) {
@@ -11,7 +12,8 @@ export default async function NewEventPage({ searchParams }: { searchParams: Sea
       <Flash searchParams={searchParams} />
       <p className="small"><Link href="/organizer">← Dashboard</Link></p>
       <h1>Create an event</h1>
-      <form action={createEvent} className="card">
+      <FormMemory formId="create-event" />
+      <form id="create-event" action={createEvent} className="card">
         <div className="fields-2">
           <div className="field">
             <label htmlFor="title">Title</label>

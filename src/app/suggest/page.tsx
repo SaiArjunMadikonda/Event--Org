@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { formatDate } from "@/lib/format";
 import { Flash, type SearchParams } from "@/components/Flash";
+import { FormMemory } from "@/components/FormMemory";
 import { submitActivityRequest } from "../actions/participant";
 
 const STATUS_TEXT: Record<string, { label: string; tone: string }> = {
@@ -29,7 +30,8 @@ export default async function SuggestPage({ searchParams }: { searchParams: Sear
             next.
           </p>
         </div>
-        <form action={submitActivityRequest} className="card">
+        <FormMemory formId="suggest-activity" />
+        <form id="suggest-activity" action={submitActivityRequest} className="card">
           <div className="fields-2">
             <div className="field">
               <label htmlFor="activity">Activity</label>
