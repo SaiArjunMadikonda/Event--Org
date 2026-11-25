@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { requireOrganizer } from "@/lib/session";
 import { createPreview, publishRun, PublishError } from "@/lib/runs";
 import type { MatchingMethod } from "@/lib/matching/engine";
+import { isSupportedTimeZone, zonedLocalToUtc } from "@/lib/timezones";
 import { done, fail, int, str } from "./util";
 
 /** Load an event and make sure the signed-in organizer owns it. */
@@ -39,8 +40,12 @@ export async function createEvent(formData: FormData) {
 
   if (!title || !activity || !description || !area || !meetingPoint || !startsAtRaw)
     fail(back, "Please fill in every required field.");
-  const startsAt = new Date(startsAtRaw);
-  if (Number.isNaN(startsAt.getTime())) fail(back, "Enter a valid date and time.");
+  const timeZone = str(formData, "timeZone");
+  if (!isSupportedTimeZone(timeZone)) fail(back, "Choose the time zone the event happens in.");
+  // The form gives a wall-clock time in the event's zone; convert it here rather than in the server's zone.
+  const startsAt = zonedLocalToUtc(startsAtRaw, timeZone);
+  if (!startsAt)
+    fail(back, "Enter a valid date and time. (If clocks change that night, that time may not exist; pick another.)");
   if (startsAt < new Date()) fail(back, "The event must start in the future.");
   if (capacity === null || Number.isNaN(capacity) || capacity < min) fail(back, "Capacity must be at least the minimum group size.");
   if (capacity > 500) fail(back, "Capacity can be at most 500 for now.");
@@ -52,6 +57,7 @@ export async function createEvent(formData: FormData) {
       description,
       whatToExpect: str(formData, "whatToExpect"),
       startsAt,
+      timeZone,
       durationMinutes: duration && !Number.isNaN(duration) && duration > 0 ? duration : 120,
       area,
       meetingPoint,

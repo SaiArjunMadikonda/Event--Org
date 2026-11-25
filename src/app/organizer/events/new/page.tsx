@@ -3,6 +3,7 @@ import { requireOrganizer } from "@/lib/session";
 import { INTEREST_CATEGORIES } from "@/lib/interests";
 import { Flash, type SearchParams } from "@/components/Flash";
 import { FormMemory } from "@/components/FormMemory";
+import { TimeZoneSelect } from "@/components/TimeZoneSelect";
 import { createEvent } from "../../../actions/organizer";
 
 export default async function NewEventPage({ searchParams }: { searchParams: SearchParams }) {
@@ -34,8 +35,12 @@ export default async function NewEventPage({ searchParams }: { searchParams: Sea
         </div>
         <div className="fields-2">
           <div className="field">
-            <label htmlFor="startsAt">Date and time</label>
+            <label htmlFor="startsAt">Date and time <span className="hint">· local time where it happens</span></label>
             <input id="startsAt" name="startsAt" type="datetime-local" required />
+          </div>
+          <div className="field">
+            <label htmlFor="timeZone">Time zone</label>
+            <TimeZoneSelect />
           </div>
           <div className="field">
             <label htmlFor="durationMinutes">Duration (minutes)</label>

@@ -24,6 +24,24 @@ npm run dev        # http://localhost:3000
 
 `npm run db:setup` resets the database every time you run it, so use it to start a demo over.
 
+### Sign-in
+
+Real sign-in uses Supabase Auth: a one-time email link, or Google. Add the project URL and publishable key to
+`.env` (Supabase → **Project Settings** → **API Keys**). In Supabase → **Authentication** → **URL Configuration**, add
+`http://localhost:3000/auth/callback` (and your hosted address's `/auth/callback`) as a redirect URL. Google also
+needs to be turned on under **Sign In / Providers**, with a Client ID and Client Secret from a Google Cloud OAuth
+client whose redirect URI is `https://<project-ref>.supabase.co/auth/v1/callback`.
+
+`DEMO_LOGIN="true"` adds a picker for the fictional seed accounts. Keep it off anywhere real people use the site.
+
+### Organizers
+
+New accounts start as participants. To become an organizer, a participant applies from **Host events**, and any
+existing organizer approves or declines it under **Organizer dashboard → Organizer applications**.
+
+On a fresh site nobody can approve the first organizer, so list their email in `ORGANIZER_EMAILS` (comma-separated).
+Those people become organizers when they sign in with a real account.
+
 Other commands:
 
 | Command | What it does |
@@ -34,13 +52,13 @@ Other commands:
 
 ## Demo walkthrough
 
-All people in the seed data are fictional. Sign-in is a demo picker with no passwords (see *Limitations*).
+All people in the seed data are fictional. With `DEMO_LOGIN="true"`, the sign-in page has a picker to sign in as them.
 
 1. **Sign in as Maya Organizer.** Open **Movie and Dinner Night**: 15 people are registered, groups of exactly 5.
 2. Choose **Interest-based groups** → **Create Group Preview**. You get three groups of five, each with the movie
    genres its members share. Emeka and Jada have a block between them, so they are never in the same group.
 3. Click **Publish groups**.
-4. **Switch user** → sign in as e.g. **Aarav Shah** → **My Events** → **My group**. Aarav sees his group number,
+4. **Sign out** → sign in as e.g. **Aarav Shah** → **My Events** → **My group**. Aarav sees his group number,
    meeting point, first names of his group, interests in common, and how the group was formed.
 5. As Maya, open **Beginner Badminton** (7 registered, groups of 4–6) and create a preview. The result is one group of
    six and **one unassigned** person, with the reason shown. Change the rule (e.g. 3–4) and preview again to see two
@@ -48,6 +66,8 @@ All people in the seed data are fictional. Sign-in is a demo picker with no pass
 6. As any participant, open **Suggest an Activity** and submit a request. As Maya, open **Activity requests** to see
    requests grouped by activity and mark them Reviewing / Planned / Declined. The requester sees the status.
 7. As Maya, **+ Create event** to publish a new activity; it appears on everyone's Discover page.
+8. Sign in with your own email or Google, open **Host events** and apply. As Maya, open **Organizer applications**
+   and approve it; your account now has the Organizer dashboard.
 
 ## How group matching works
 
@@ -81,6 +101,14 @@ is set.
 **Unassigned reasons:** not enough people for even one group, no room under the size rule, or every group with room
 contained someone they are blocked with.
 
+## Time zones
+
+Each event has its own time zone, chosen when it's created (defaulting to the organizer's browser zone). The time an
+organizer types is read as local time in that zone, on the server, so it doesn't depend on where the app is hosted
+([src/lib/timezones.ts](src/lib/timezones.ts)). Event times are always shown in the event's zone with its
+abbreviation (e.g. "7:00 PM CST"). Someone viewing from another zone also sees "That's 8:00 PM your time". A time
+that doesn't exist because clocks jump forward that night is rejected with a clear message.
+
 ## Privacy choices
 
 - Email is never shown to other participants.
@@ -101,7 +129,10 @@ src/lib/runs.ts             Builds engine input from the database; stores and pu
 src/app/actions/            Server actions (all writes and permission checks)
 src/app/                    Screens: Discover, Event details, My group, Profile, My events,
                             Suggest, Organizer dashboard, Create event, Event management /
-                            group preview, Activity requests
+                            group preview, Activity requests, Host events (apply),
+                            Organizer applications (review)
+src/lib/session.ts          Who is signed in (Supabase Auth, or demo cookie when enabled)
+src/lib/organizers.ts       Organizer onboarding rules + tests
 ```
 
 ## Where this came from
@@ -114,9 +145,7 @@ and every part is clearly our own. No eventOS code is included.
 
 | Prototype | Before real users |
 |---|---|
-| Demo sign-in picker, no passwords (cookie holds the user id) | Supabase Auth |
-| Organizer role set in the seed data | Organizer onboarding and approval |
-| Times shown in US Central time | Per-event time zone |
+| Google sign-in limited to listed test users (Google app in Testing mode) | Publish the Google app |
 | Activity requests reviewed manually | Matching similar requests and suggesting events |
 
 ## Next steps

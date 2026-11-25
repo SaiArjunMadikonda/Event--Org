@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { eventStatus, formatDateTime } from "@/lib/format";
+import { eventStatus, formatEventDateTime } from "@/lib/format";
 
 type Props = {
   event: {
@@ -7,6 +7,7 @@ type Props = {
     title: string;
     activity: string;
     startsAt: Date;
+    timeZone: string;
     area: string;
     costEstimate: string;
     capacity: number;
@@ -31,7 +32,7 @@ export function EventCard({ event, registeredCount, href, joined }: Props) {
       <h3>{event.title}</h3>
       <dl className="meta">
         <dt>When</dt>
-        <dd>{formatDateTime(event.startsAt)}</dd>
+        <dd>{formatEventDateTime(event.startsAt, event.timeZone)}</dd>
         <dt>Where</dt>
         <dd>{event.area}</dd>
         <dt>Cost</dt>

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/session";
-import { firstName, formatDateTime } from "@/lib/format";
+import { firstName, formatEventDateTime } from "@/lib/format";
+import { LocalTimeHint } from "@/components/LocalTimeHint";
 import { getMyAssignment } from "@/lib/groups";
 import { METHOD_DESCRIPTIONS, type MatchingMethod } from "@/lib/matching/engine";
 import { Flash, type SearchParams } from "@/components/Flash";
@@ -55,7 +56,7 @@ export default async function MyGroupPage({
         <div className="card">
           <h1>Your group isn&apos;t ready yet</h1>
           <p className="muted">
-            You have a spot at <strong>{event.title}</strong> on {formatDateTime(event.startsAt)}. The organizer will
+            You have a spot at <strong>{event.title}</strong> on {formatEventDateTime(event.startsAt, event.timeZone)}. The organizer will
             form groups closer to the date, and your group will appear here once it&apos;s published.
           </p>
         </div>
@@ -79,7 +80,10 @@ export default async function MyGroupPage({
             <h1 style={{ marginTop: "0.5rem" }}>{event.title}</h1>
             <dl className="meta">
               <dt>When</dt>
-              <dd>{formatDateTime(event.startsAt)}</dd>
+              <dd>
+                {formatEventDateTime(event.startsAt, event.timeZone)}
+                <LocalTimeHint iso={event.startsAt.toISOString()} timeZone={event.timeZone} />
+              </dd>
               <dt>Meet at</dt>
               <dd>{event.meetingPoint}</dd>
               <dt>Your group</dt>

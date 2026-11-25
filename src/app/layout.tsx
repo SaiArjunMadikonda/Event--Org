@@ -25,14 +25,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <Link href="/my-events">My Events</Link>
                 <Link href="/suggest">Suggest an Activity</Link>
                 <Link href="/profile">Profile</Link>
-                {user.role === "ORGANIZER" && <Link href="/organizer">Organizer</Link>}
+                {user.role === "ORGANIZER" ? (
+                  <Link href="/organizer">Organizer</Link>
+                ) : (
+                  <Link href="/organize">Host events</Link>
+                )}
               </div>
             )}
             {user ? (
               <div className="nav-user">
                 <span>{user.name}</span>
                 <form action={signOut} className="inline">
-                  <button className="btn link small" type="submit">Switch user</button>
+                  <button className="btn link small" type="submit">Sign out</button>
                 </form>
               </div>
             ) : (

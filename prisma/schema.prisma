@@ -15,6 +15,7 @@ datasource db {
 
 model User {
   id                String   @id @default(cuid())
+  authId            String?  @unique // Supabase Auth user id; null for demo-only accounts
   name              String
   email             String   @unique // never shown to other participants
   city              String   @default("")
@@ -33,6 +34,28 @@ model User {
   blocksReceived   Block[]           @relation("Blocked")
   reportsMade      Report[]          @relation("Reporter")
   reportsReceived  Report[]          @relation("ReportedUser")
+  organizerApplications OrganizerApplication[] @relation("Applicant")
+  applicationsReviewed  OrganizerApplication[] @relation("ApplicationReviewer")
+}
+
+// A participant asking to become an organizer. An existing organizer approves or declines it.
+model OrganizerApplication {
+  id           String    @id @default(cuid())
+  userId       String
+  plans        String // what they want to organize
+  area         String // where they'd host
+  experience   String    @default("") // optional: anything they've run before
+  status       String    @default("PENDING") // PENDING | APPROVED | DECLINED
+  reviewerNote String    @default("") // shown to the applicant
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  user       User  @relation("Applicant", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("ApplicationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([userId])
 }
 
 model Interest {
@@ -57,7 +80,8 @@ model Event {
   activity             String // short label used for browsing, e.g. "Movies & Dinner"
   description          String
   whatToExpect         String   @default("")
-  startsAt             DateTime
+  startsAt             DateTime // a real instant (stored in UTC)
+  timeZone             String   @default("America/Chicago") // IANA zone the event happens in; times are shown in it
   durationMinutes      Int      @default(120)
   area                 String // general location, visible to everyone
   meetingPoint         String // exact place, visible to registered attendees only

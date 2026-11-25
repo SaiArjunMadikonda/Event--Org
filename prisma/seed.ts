@@ -4,14 +4,15 @@
  */
 import { PrismaClient } from "@prisma/client";
 import { INTEREST_CATALOG } from "../src/lib/interests";
+import { DEFAULT_TIME_ZONE, toZonedLocal, zonedLocalToUtc } from "../src/lib/timezones";
 
 const prisma = new PrismaClient();
 
+/** `hour:minute` US Central time, `days` from today. Independent of the machine's own time zone. */
 function daysFromNow(days: number, hour: number, minute = 0): Date {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  d.setHours(hour, minute, 0, 0);
-  return d;
+  const day = toZonedLocal(new Date(Date.now() + days * 86_400_000), DEFAULT_TIME_ZONE).slice(0, 10);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return zonedLocalToUtc(`${day}T${pad(hour)}:${pad(minute)}`, DEFAULT_TIME_ZONE)!;
 }
 
 type Person = { name: string; city: string; bio: string; share: boolean; interests: string[] };

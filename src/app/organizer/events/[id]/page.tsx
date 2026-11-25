@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireOrganizer } from "@/lib/session";
-import { eventStatus, formatDate, formatDateTime, parseJson } from "@/lib/format";
+import { eventStatus, formatDate, formatDateTime, formatEventDateTime, parseJson } from "@/lib/format";
 import {
   METHOD_DESCRIPTIONS,
   UNASSIGNED_REASON_TEXT,
@@ -142,7 +142,7 @@ export default async function OrganizerEventPage({
             <span className={`badge ${status.tone}`}>{status.label}</span>
           </div>
           <p className="muted" style={{ margin: 0 }}>
-            {formatDateTime(event.startsAt)} · {event.area} · {event.costEstimate}
+            {formatEventDateTime(event.startsAt, event.timeZone)} · {event.area} · {event.costEstimate}
           </p>
         </div>
         <div className="row">

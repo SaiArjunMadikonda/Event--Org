@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/session";
-import { eventStatus, formatDateTime } from "@/lib/format";
+import { eventStatus, formatEventDateTime, formatEventTime } from "@/lib/format";
 import { Flash, type SearchParams } from "@/components/Flash";
+import { LocalTimeHint } from "@/components/LocalTimeHint";
 import { joinEvent, leaveEvent } from "../../actions/participant";
 
 export default async function EventPage({
@@ -61,8 +62,12 @@ export default async function EventPage({
             <dl className="meta">
               <dt>When</dt>
               <dd>
-                {formatDateTime(event.startsAt)}
-                <div className="muted small">about {Math.round(event.durationMinutes / 60 * 10) / 10} hours, until {formatDateTime(end).split(", ").pop()}</div>
+                {formatEventDateTime(event.startsAt, event.timeZone)}
+                <div className="muted small">
+                  about {Math.round((event.durationMinutes / 60) * 10) / 10} hours, until{" "}
+                  {formatEventTime(end, event.timeZone)}
+                </div>
+                <LocalTimeHint iso={event.startsAt.toISOString()} timeZone={event.timeZone} />
               </dd>
               <dt>Area</dt>
               <dd>{event.area}</dd>

@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireOrganizer } from "@/lib/session";
-import { eventStatus, formatDate, formatDateTime } from "@/lib/format";
+import { eventStatus, formatDate, formatEventDateTime } from "@/lib/format";
 import { Flash, type SearchParams } from "@/components/Flash";
 import { resolveReport } from "../actions/organizer";
 
 export default async function OrganizerDashboard({ searchParams }: { searchParams: SearchParams }) {
   const user = await requireOrganizer();
-  const [events, newRequests, reports] = await Promise.all([
+  const [events, newRequests, reports, pendingApplications] = await Promise.all([
     prisma.event.findMany({
       where: { organizerId: user.id },
       orderBy: { startsAt: "asc" },
@@ -26,6 +26,7 @@ export default async function OrganizerDashboard({ searchParams }: { searchParam
       },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.organizerApplication.count({ where: { status: "PENDING" } }),
   ]);
 
   const upcoming = events.filter((e) => e.startsAt >= new Date());
@@ -37,6 +38,9 @@ export default async function OrganizerDashboard({ searchParams }: { searchParam
       <div className="row between">
         <h1>Organizer dashboard</h1>
         <div className="row">
+          <Link href="/organizer/applications" className="btn secondary">
+            Organizer applications{pendingApplications > 0 ? ` (${pendingApplications} waiting)` : ""}
+          </Link>
           <Link href="/organizer/requests" className="btn secondary">
             Activity requests{newRequests > 0 ? ` (${newRequests} new)` : ""}
           </Link>
@@ -65,6 +69,13 @@ export default async function OrganizerDashboard({ searchParams }: { searchParam
               </tr>
             </thead>
             <tbody>
+              {events.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="muted">
+                    No events yet. Use <Link href="/organizer/events/new">+ Create event</Link> to plan your first one.
+                  </td>
+                </tr>
+              )}
               {events.map((e) => {
                 const status = eventStatus(e, e.registrations.length);
                 const published = e.matchingRuns.some((r) => r.status === "PUBLISHED");
@@ -72,7 +83,7 @@ export default async function OrganizerDashboard({ searchParams }: { searchParam
                 return (
                   <tr key={e.id}>
                     <td><Link href={`/organizer/events/${e.id}`}>{e.title}</Link></td>
-                    <td>{formatDateTime(e.startsAt)}</td>
+                    <td>{formatEventDateTime(e.startsAt, e.timeZone)}</td>
                     <td>{e.registrations.length} / {e.capacity}</td>
                     <td>
                       {published ? <span className="badge accent">Published</span> : preview ? <span className="badge warn">Preview ready</span> : <span className="muted small">—</span>}

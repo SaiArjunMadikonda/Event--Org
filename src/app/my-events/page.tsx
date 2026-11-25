@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/session";
-import { eventStatus, formatDateTime } from "@/lib/format";
+import { eventStatus, formatEventDateTime } from "@/lib/format";
 
 export default async function MyEventsPage() {
   const user = await requireUser();
@@ -38,7 +38,7 @@ export default async function MyEventsPage() {
               <span className={`badge ${status.tone}`}>{status.label}</span>
             </div>
             <div className="muted small">
-              {formatDateTime(r.event.startsAt)} · {r.event.area}
+              {formatEventDateTime(r.event.startsAt, r.event.timeZone)} · {r.event.area}
             </div>
             <div className="small" style={{ marginTop: 4 }}>
               {group ? (
