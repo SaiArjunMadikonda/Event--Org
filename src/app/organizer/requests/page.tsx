@@ -3,7 +3,11 @@ import { prisma } from "@/lib/db";
 import { requireOrganizer } from "@/lib/session";
 import { formatDate } from "@/lib/format";
 import { Flash, type SearchParams } from "@/components/Flash";
+import { Icon } from "@/components/Icon";
+import { activityVisual } from "@/lib/activity";
 import { updateActivityRequest } from "../../actions/organizer";
+
+export const metadata = { title: "Activity requests" };
 
 export default async function RequestsPage({ searchParams }: { searchParams: SearchParams }) {
   await requireOrganizer();
@@ -23,23 +27,31 @@ export default async function RequestsPage({ searchParams }: { searchParams: Sea
   return (
     <div className="stack">
       <Flash searchParams={searchParams} />
-      <p className="small"><Link href="/organizer">← Dashboard</Link></p>
+      <Link href="/organizer" className="back" style={{ marginBottom: 0 }}><Icon name="arrowLeft" size={16} /> Dashboard</Link>
       <div className="row between">
         <div>
+          <div className="eyebrow"><Icon name="bulb" size={15} /> Ideas from members</div>
           <h1 style={{ margin: 0 }}>Activity requests</h1>
           <p className="muted" style={{ margin: 0 }}>
             What people want to do, grouped by activity. Requests are signals of interest, not bookings.
           </p>
         </div>
-        <Link href="/organizer/events/new" className="btn">+ Create event from demand</Link>
+        <Link href="/organizer/events/new" className="btn"><Icon name="plus" size={17} /> Create event from demand</Link>
       </div>
 
-      {clusters.length === 0 && <div className="card muted">No requests yet.</div>}
+      {clusters.length === 0 && (
+        <div className="empty"><span className="emoji">💡</span><h3>No ideas yet</h3><p>When members suggest activities, they&apos;ll be grouped here.</p></div>
+      )}
 
       {clusters.map((list) => (
         <div key={list[0].id} className="card">
           <div className="row between">
-            <h2 style={{ margin: 0 }}>{list[0].activity}</h2>
+            <h2 style={{ margin: 0 }} className="row">
+              <span className="emoji-tile tint" style={{ ["--h" as string]: activityVisual(list[0].activity).hue, width: 40, height: 40, fontSize: "1.2rem", borderRadius: 12 }}>
+                {activityVisual(list[0].activity).emoji}
+              </span>
+              {list[0].activity}
+            </h2>
             <span className="badge accent">{list.length} request{list.length === 1 ? "" : "s"}</span>
           </div>
           {list.map((r) => (

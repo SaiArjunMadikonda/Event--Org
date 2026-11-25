@@ -3,7 +3,11 @@ import { prisma } from "@/lib/db";
 import { requireOrganizer } from "@/lib/session";
 import { formatDate } from "@/lib/format";
 import { Flash, type SearchParams } from "@/components/Flash";
+import { Icon } from "@/components/Icon";
+import { Avatar } from "@/components/Avatar";
 import { reviewApplication } from "../../actions/onboarding";
+
+export const metadata = { title: "Organizer applications" };
 
 export default async function ApplicationsPage({ searchParams }: { searchParams: SearchParams }) {
   const me = await requireOrganizer();
@@ -24,20 +28,23 @@ export default async function ApplicationsPage({ searchParams }: { searchParams:
   return (
     <div className="stack">
       <Flash searchParams={searchParams} />
-      <p className="small"><Link href="/organizer">← Dashboard</Link></p>
+      <Link href="/organizer" className="back" style={{ marginBottom: 0 }}><Icon name="arrowLeft" size={16} /> Dashboard</Link>
       <div>
+        <div className="eyebrow"><Icon name="user" size={15} /> New hosts</div>
         <h1 style={{ margin: 0 }}>Organizer applications</h1>
         <p className="muted" style={{ margin: 0 }}>
           Approving someone lets them create events and publish groups. Any note you add is shown to the applicant.
         </p>
       </div>
 
-      {pending.length === 0 && <div className="card muted">No applications waiting for review.</div>}
+      {pending.length === 0 && (
+        <div className="empty"><span className="emoji">📭</span><h3>All caught up</h3><p>No applications waiting for review.</p></div>
+      )}
 
       {pending.map((a) => (
         <div key={a.id} className="card">
           <div className="row between">
-            <h2 style={{ margin: 0 }}>{a.user.name}</h2>
+            <h2 style={{ margin: 0 }} className="row"><Avatar name={a.user.name} size={40} /> {a.user.name}</h2>
             <span className="small muted">Applied {formatDate(a.createdAt)}</span>
           </div>
           <p className="small muted">
@@ -64,7 +71,7 @@ export default async function ApplicationsPage({ searchParams }: { searchParams:
                 placeholder="Note to applicant (optional)"
                 style={{ flex: 1, minWidth: 200 }}
               />
-              <button className="btn" type="submit" name="decision" value="APPROVE">Approve</button>
+              <button className="btn" type="submit" name="decision" value="APPROVE"><Icon name="check" size={16} /> Approve</button>
               <button className="btn danger" type="submit" name="decision" value="DECLINE">Decline</button>
             </form>
           )}

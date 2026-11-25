@@ -3,13 +3,17 @@ import { requireUser } from "@/lib/session";
 import { formatDate } from "@/lib/format";
 import { Flash, type SearchParams } from "@/components/Flash";
 import { FormMemory } from "@/components/FormMemory";
+import { Icon } from "@/components/Icon";
+import { activityVisual } from "@/lib/activity";
 import { submitActivityRequest } from "../actions/participant";
 
+export const metadata = { title: "Suggest an activity" };
+
 const STATUS_TEXT: Record<string, { label: string; tone: string }> = {
-  NEW: { label: "Submitted", tone: "" },
+  NEW: { label: "Sent", tone: "info" },
   REVIEWING: { label: "Organizer reviewing", tone: "accent" },
-  PLANNED: { label: "Event being planned", tone: "ok" },
-  DECLINED: { label: "Not planned", tone: "muted" },
+  PLANNED: { label: "Being planned", tone: "ok" },
+  DECLINED: { label: "Not planned", tone: "" },
 };
 
 export default async function SuggestPage({ searchParams }: { searchParams: SearchParams }) {
@@ -24,6 +28,7 @@ export default async function SuggestPage({ searchParams }: { searchParams: Sear
       <div className="stack">
         <Flash searchParams={searchParams} />
         <div>
+          <div className="eyebrow"><Icon name="bulb" size={15} /> Your idea</div>
           <h1>Suggest an activity</h1>
           <p className="muted">
             Tell us what you&apos;d like to do. Organizers look at similar requests together to decide what to plan
@@ -75,7 +80,7 @@ export default async function SuggestPage({ searchParams }: { searchParams: Sear
             </label>
             <textarea id="notes" name="notes" maxLength={500} placeholder="e.g. Would love a regular weekly game." />
           </div>
-          <button className="btn" type="submit">Submit Interest</button>
+          <button className="btn large" type="submit"><Icon name="sparkles" /> Send my idea</button>
           <p className="muted small" style={{ margin: "0.6rem 0 0" }}>
             This is a signal of interest, not a booking. We can&apos;t promise an event will happen, but organizers use
             these requests to decide what to plan.
@@ -83,17 +88,17 @@ export default async function SuggestPage({ searchParams }: { searchParams: Sear
         </form>
       </div>
 
-      <div className="card">
-        <h2 style={{ marginTop: 0 }}>Your requests</h2>
+      <div className="card sticky">
+        <h2 className="card-title"><Icon name="inbox" /> Your ideas</h2>
         {requests.length === 0 ? (
-          <p className="muted small" style={{ margin: 0 }}>Nothing submitted yet.</p>
+          <p className="muted small" style={{ margin: 0 }}>Nothing sent yet. Your ideas and their status will show up here.</p>
         ) : (
           requests.map((r) => {
             const s = STATUS_TEXT[r.status] ?? STATUS_TEXT.NEW;
             return (
               <div key={r.id} className="member">
                 <div className="row between">
-                  <strong>{r.activity}</strong>
+                  <strong>{activityVisual(r.activity).emoji} {r.activity}</strong>
                   <span className={`badge ${s.tone}`}>{s.label}</span>
                 </div>
                 <div className="small muted">

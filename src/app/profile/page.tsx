@@ -2,7 +2,11 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { INTEREST_CATEGORIES } from "@/lib/interests";
 import { Flash, type SearchParams } from "@/components/Flash";
+import { Avatar } from "@/components/Avatar";
+import { Icon } from "@/components/Icon";
 import { unblockUser, updateProfile } from "../actions/participant";
+
+export const metadata = { title: "Profile" };
 
 export default async function ProfilePage({ searchParams }: { searchParams: SearchParams }) {
   const user = await requireUser();
@@ -14,13 +18,21 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
   const selected = new Set(mine.map((m) => m.interestId));
 
   return (
-    <div className="stack" style={{ maxWidth: 760 }}>
+    <div className="stack" style={{ maxWidth: 820, margin: "0 auto" }}>
       <Flash searchParams={searchParams} />
-      <h1>Profile &amp; interests</h1>
+      <div className="row" style={{ gap: "1.1rem", flexWrap: "nowrap" }}>
+        <Avatar name={user.name} size={72} />
+        <div>
+          <h1 style={{ margin: 0 }}>{user.name}</h1>
+          <p className="muted" style={{ margin: 0 }}>
+            {user.role === "ORGANIZER" ? "Organizer" : "Member"} · {selected.size} interest{selected.size === 1 ? "" : "s"} picked
+          </p>
+        </div>
+      </div>
 
       <form action={updateProfile} className="stack">
         <div className="card">
-          <h2 style={{ marginTop: 0 }}>About you</h2>
+          <h2 className="card-title"><Icon name="user" /> About you</h2>
           <div className="fields-2">
             <div className="field">
               <label htmlFor="name">Name</label>
@@ -47,8 +59,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
         </div>
 
         <div className="card">
-          <h2 style={{ marginTop: 0 }}>Interests</h2>
-          <p className="muted small">
+          <h2 className="card-title"><Icon name="heart" /> Interests</h2>
+          <p className="muted small" style={{ marginBottom: "1.1rem" }}>
             Used to place you with people who share some of your interests. Group members may see the interests you
             have in common with them.
           </p>
@@ -69,13 +81,13 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
           ))}
         </div>
 
-        <div>
-          <button className="btn" type="submit">Save profile</button>
+        <div style={{ position: "sticky", bottom: "1rem", zIndex: 5 }}>
+          <button className="btn large" type="submit"><Icon name="check" /> Save profile</button>
         </div>
       </form>
 
       <div className="card">
-        <h2 style={{ marginTop: 0 }}>Blocked people</h2>
+        <h2 className="card-title"><Icon name="shield" /> Blocked people</h2>
         {blocks.length === 0 ? (
           <p className="muted small" style={{ margin: 0 }}>
             You haven&apos;t blocked anyone. You can block someone from your group page; you&apos;ll never be grouped
@@ -84,7 +96,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
         ) : (
           blocks.map((b) => (
             <div key={b.id} className="row between member">
-              <span>{b.blocked.name}</span>
+              <span className="row" style={{ gap: "0.6rem" }}><Avatar name={b.blocked.name} size={30} /> {b.blocked.name}</span>
               <form action={unblockUser}>
                 <input type="hidden" name="userId" value={b.blockedId} />
                 <button className="btn secondary small" type="submit">Unblock</button>

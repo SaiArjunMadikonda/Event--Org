@@ -1,6 +1,7 @@
-# Community Events & Smart Group Matching Platform
+# Huddle Up
 
-A platform that helps people turn an interest into a real-world experience with a small group.
+*Community Events & Smart Group Matching.* A platform that helps people turn an interest into a real-world
+experience with a small group. Live at **https://huddle-up-pi.vercel.app**.
 
 This is the **first working version**. It demonstrates one complete journey:
 

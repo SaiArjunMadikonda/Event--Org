@@ -4,6 +4,9 @@ import { INTEREST_CATEGORIES } from "@/lib/interests";
 import { Flash, type SearchParams } from "@/components/Flash";
 import { FormMemory } from "@/components/FormMemory";
 import { TimeZoneSelect } from "@/components/TimeZoneSelect";
+import { Icon } from "@/components/Icon";
+
+export const metadata = { title: "Create an event" };
 import { createEvent } from "../../../actions/organizer";
 
 export default async function NewEventPage({ searchParams }: { searchParams: SearchParams }) {
@@ -11,8 +14,12 @@ export default async function NewEventPage({ searchParams }: { searchParams: Sea
   return (
     <div className="stack" style={{ maxWidth: 760 }}>
       <Flash searchParams={searchParams} />
-      <p className="small"><Link href="/organizer">← Dashboard</Link></p>
-      <h1>Create an event</h1>
+      <Link href="/organizer" className="back" style={{ marginBottom: 0 }}><Icon name="arrowLeft" size={16} /> Dashboard</Link>
+      <div>
+        <div className="eyebrow"><Icon name="plus" size={15} /> New activity</div>
+        <h1 style={{ margin: 0 }}>Create an event</h1>
+        <p className="muted" style={{ margin: "0.35rem 0 0" }}>Set the basics and the group size. You&apos;ll review groups before anyone sees them.</p>
+      </div>
       <FormMemory formId="create-event" />
       <form id="create-event" action={createEvent} className="card">
         <div className="fields-2">
@@ -82,7 +89,7 @@ export default async function NewEventPage({ searchParams }: { searchParams: Sea
           <label htmlFor="registrationQuestion">Question for attendees <span className="hint">· optional, e.g. dietary preferences</span></label>
           <input id="registrationQuestion" name="registrationQuestion" type="text" />
         </div>
-        <button className="btn" type="submit">Create event</button>
+        <button className="btn large" type="submit"><Icon name="check" /> Create event</button>
       </form>
     </div>
   );

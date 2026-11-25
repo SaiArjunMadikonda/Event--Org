@@ -35,6 +35,13 @@ export function formatEventTime(d: Date, timeZone: string): string {
   }).format(d);
 }
 
+/** Pieces for a calendar-style date badge, in the event's zone: { month: "DEC", day: "5", weekday: "Sat" }. */
+export function eventDateParts(d: Date, timeZone: string): { month: string; day: string; weekday: string } {
+  const parts = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", weekday: "short", timeZone }).formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return { month: get("month").toUpperCase(), day: get("day"), weekday: get("weekday") };
+}
+
 export function formatDate(d: Date, timeZone = DEFAULT_TIME_ZONE): string {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone }).format(d);
 }

@@ -10,6 +10,9 @@ import {
   type UnassignedAttendee,
 } from "@/lib/matching/engine";
 import { Flash, type SearchParams } from "@/components/Flash";
+import { Icon } from "@/components/Icon";
+import { Avatar } from "@/components/Avatar";
+import { activityVisual } from "@/lib/activity";
 import {
   discardPreview,
   generatePreview,
@@ -91,7 +94,8 @@ export default async function OrganizerEventPage({
             return (
               <div key={g.id} className="card group-card">
                 <h3>
-                  Group {g.number} <span className="badge">{g.members.length} people</span>
+                  <span className="row" style={{ gap: 0 }}><span className="gn">{g.number}</span>Group {g.number}</span>
+                  <span className="badge plain">{g.members.length} people</span>
                 </h3>
                 {shared.length > 0 ? (
                   <p className="small" style={{ margin: "0 0 0.4rem" }}>
@@ -101,10 +105,13 @@ export default async function OrganizerEventPage({
                   <p className="small muted">No interests shared by 2+ members</p>
                 )}
                 {g.members.map((m) => (
-                  <div key={m.id} className="member small">
-                    <strong>{m.user.name}</strong>
-                    {!activeIds.has(m.userId) && <span className="badge warn" style={{ marginLeft: 6 }}>Left event</span>}
-                    <div className="muted">{relevant(m.user.interests).join(", ") || "No relevant interests"}</div>
+                  <div key={m.id} className="member small" style={{ display: "flex", gap: "0.6rem", alignItems: "flex-start" }}>
+                    <Avatar name={m.user.name} size={28} />
+                    <div>
+                      <strong>{m.user.name}</strong>
+                      {!activeIds.has(m.userId) && <span className="badge warn" style={{ marginLeft: 6 }}>Left event</span>}
+                      <div className="muted">{relevant(m.user.interests).join(", ") || "No relevant interests"}</div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -132,16 +139,17 @@ export default async function OrganizerEventPage({
 
   return (
     <div className="stack">
+      <Link href="/organizer" className="back" style={{ marginBottom: 0 }}><Icon name="arrowLeft" size={16} /> Dashboard</Link>
       <Flash searchParams={searchParams} />
-      <p className="small"><Link href="/organizer">← Dashboard</Link></p>
 
-      <div className="row between">
+      <div className="event-hero tint row between" style={{ ["--h" as string]: activityVisual(event.activity).hue, marginBottom: 0, alignItems: "flex-end" }}>
         <div>
-          <div className="row">
+          <span className="emoji-tile" aria-hidden="true">{activityVisual(event.activity).emoji}</span>
+          <div className="row" style={{ gap: "0.6rem" }}>
             <h1 style={{ margin: 0 }}>{event.title}</h1>
             <span className={`badge ${status.tone}`}>{status.label}</span>
           </div>
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="muted" style={{ margin: "0.35rem 0 0", color: "var(--text-2)" }}>
             {formatEventDateTime(event.startsAt, event.timeZone)} · {event.area} · {event.costEstimate}
           </p>
         </div>
@@ -174,14 +182,14 @@ export default async function OrganizerEventPage({
       </div>
 
       <div className="stats">
-        <div className="card"><div className="stat">{active.length} / {event.capacity}</div><div className="muted small">Registered</div></div>
-        <div className="card"><div className="stat">{event.minGroupSize === event.maxGroupSize ? event.minGroupSize : `${event.minGroupSize}–${event.maxGroupSize}`}</div><div className="muted small">Group size rule</div></div>
-        <div className="card"><div className="stat">{cancelled.length}</div><div className="muted small">Cancelled registrations</div></div>
-        <div className="card"><div className="stat">{event.interestCategory ?? "All"}</div><div className="muted small">Interests used for matching</div></div>
+        <div className="card stat-card ok"><span className="si"><Icon name="ticket" size={20} /></span><div><div className="stat">{active.length} / {event.capacity}</div><div className="muted small">Registered</div></div></div>
+        <div className="card stat-card"><span className="si"><Icon name="users" size={20} /></span><div><div className="stat">{event.minGroupSize === event.maxGroupSize ? event.minGroupSize : `${event.minGroupSize}–${event.maxGroupSize}`}</div><div className="muted small">Group size rule</div></div></div>
+        <div className="card stat-card warn"><span className="si"><Icon name="logout" size={20} /></span><div><div className="stat">{cancelled.length}</div><div className="muted small">Cancelled</div></div></div>
+        <div className="card stat-card info"><span className="si"><Icon name="heart" size={20} /></span><div><div className="stat" style={{ fontSize: event.interestCategory ? "1.25rem" : undefined }}>{event.interestCategory ?? "All"}</div><div className="muted small">Interests used for matching</div></div></div>
       </div>
 
       <div className="card">
-        <h2 style={{ marginTop: 0 }}>Registrations</h2>
+        <h2 className="card-title"><Icon name="ticket" /> Registrations</h2>
         {active.length === 0 ? (
           <p className="muted">No one has registered yet.</p>
         ) : (
@@ -200,7 +208,7 @@ export default async function OrganizerEventPage({
                 {active.map((r, i) => (
                   <tr key={r.id}>
                     <td className="muted">{i + 1}</td>
-                    <td>{r.user.name}</td>
+                    <td><span className="cell-title" style={{ fontWeight: 600 }}><Avatar name={r.user.name} size={28} /> {r.user.name}</span></td>
                     <td className="small">{relevant(r.user.interests).join(", ") || <span className="muted">—</span>}</td>
                     {event.registrationQuestion && <td className="small">{r.answer || <span className="muted">—</span>}</td>}
                     <td className="small muted">{formatDate(r.createdAt)}</td>
@@ -213,7 +221,7 @@ export default async function OrganizerEventPage({
       </div>
 
       <div className="card stack" id="matching">
-        <h2 style={{ marginTop: 0 }}>Groups</h2>
+        <h2 className="card-title"><Icon name="users" /> Groups</h2>
 
         {event.status !== "CANCELLED" && event.status !== "GROUPS_PUBLISHED" && (
           <div className="two-col">

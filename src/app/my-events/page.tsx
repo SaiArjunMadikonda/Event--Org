@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/session";
-import { eventStatus, formatEventDateTime } from "@/lib/format";
+import { eventDateParts, eventStatus, formatEventTime } from "@/lib/format";
+import { activityVisual } from "@/lib/activity";
+import { Icon } from "@/components/Icon";
+
+export const metadata = { title: "My events" };
 
 export default async function MyEventsPage() {
   const user = await requireUser();
@@ -23,55 +27,79 @@ export default async function MyEventsPage() {
 
   const now = new Date();
   const upcoming = regs.filter((r) => r.event.startsAt >= now);
-  const past = regs.filter((r) => r.event.startsAt < now);
+  const past = regs.filter((r) => r.event.startsAt < now).reverse();
 
-  const renderList = (list: typeof regs) =>
-    list.map((r) => {
-      const status = eventStatus(r.event, r.event.registrations.length);
-      const run = r.event.matchingRuns[0];
-      const group = run?.members[0]?.group;
-      return (
-        <div key={r.id} className="card row between">
-          <div>
-            <div className="row">
-              <strong>{r.event.title}</strong>
-              <span className={`badge ${status.tone}`}>{status.label}</span>
+  const renderList = (list: typeof regs, isPast = false) => (
+    <div className="stack">
+      {list.map((r) => {
+        const status = eventStatus(r.event, r.event.registrations.length);
+        const run = r.event.matchingRuns[0];
+        const group = run?.members[0]?.group;
+        const { emoji, hue } = activityVisual(r.event.activity);
+        const date = eventDateParts(r.event.startsAt, r.event.timeZone);
+        return (
+          <div key={r.id} className="card list-card" style={isPast ? { opacity: 0.75 } : undefined}>
+            <div className="tint" style={{ ["--h" as string]: hue, borderRadius: 16, padding: "0.55rem", display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              <span className="emoji-tile" style={{ width: 46, height: 46, fontSize: "1.4rem" }} aria-hidden="true">{emoji}</span>
+              <span className="date-pill">
+                <span className="m">{date.month}</span>
+                <span className="d">{date.day}</span>
+                <span className="w">{date.weekday}</span>
+              </span>
             </div>
-            <div className="muted small">
-              {formatEventDateTime(r.event.startsAt, r.event.timeZone)} · {r.event.area}
+            <div className="lc-main">
+              <div className="lc-title"><Link href={`/events/${r.eventId}`}>{r.event.title}</Link></div>
+              <div className="muted small" style={{ display: "flex", gap: "0.9rem", flexWrap: "wrap" }}>
+                <span><Icon name="clock" size={14} /> {formatEventTime(r.event.startsAt, r.event.timeZone)}</span>
+                <span><Icon name="pin" size={14} /> {r.event.area}</span>
+              </div>
+              <div className="row" style={{ gap: "0.4rem", marginTop: "0.5rem" }}>
+                <span className={`badge ${status.tone}`}>{status.label}</span>
+                {group ? (
+                  <span className="badge accent">Group {group.number}</span>
+                ) : run ? (
+                  <span className="badge warn">Not placed yet, organizer will follow up</span>
+                ) : (
+                  <span className="badge plain">Group coming soon</span>
+                )}
+              </div>
             </div>
-            <div className="small" style={{ marginTop: 4 }}>
-              {group ? (
-                <span className="badge accent">Group {group.number}</span>
-              ) : run ? (
-                <span className="badge warn">Not placed in a group — organizer will follow up</span>
-              ) : (
-                <span className="badge">Group not assigned yet</span>
-              )}
+            <div className="row" style={{ gap: "0.5rem" }}>
+              <Link className="btn secondary small" href={`/events/${r.eventId}`}>Details</Link>
+              <Link className="btn small" href={`/events/${r.eventId}/group`}>
+                <Icon name="users" size={15} /> My group
+              </Link>
             </div>
           </div>
-          <div className="row">
-            <Link className="btn secondary small" href={`/events/${r.eventId}`}>Details</Link>
-            <Link className="btn small" href={`/events/${r.eventId}/group`}>My group</Link>
-          </div>
-        </div>
-      );
-    });
+        );
+      })}
+    </div>
+  );
 
   return (
-    <div className="stack" style={{ maxWidth: 820 }}>
-      <h1>My events</h1>
+    <div style={{ maxWidth: 860, margin: "0 auto" }}>
+      <div className="page-head">
+        <div>
+          <h1>My events</h1>
+          <p>Everything you&apos;ve joined, and the group you&apos;re in for each.</p>
+        </div>
+        <Link href="/" className="btn secondary"><Icon name="plus" size={16} /> Find more</Link>
+      </div>
+
       {upcoming.length === 0 ? (
-        <div className="card muted">
-          You haven&apos;t joined any upcoming events. <Link href="/">Browse activities</Link>
+        <div className="empty">
+          <span className="emoji">🗓️</span>
+          <h3>No plans yet</h3>
+          <p>Pick an activity and we&apos;ll put you in a small group for it.</p>
+          <Link href="/" className="btn">Browse activities</Link>
         </div>
       ) : (
         renderList(upcoming)
       )}
       {past.length > 0 && (
         <>
-          <h2>Past</h2>
-          {renderList(past)}
+          <h2 style={{ marginTop: "2.2rem" }}>Past</h2>
+          {renderList(past, true)}
         </>
       )}
     </div>

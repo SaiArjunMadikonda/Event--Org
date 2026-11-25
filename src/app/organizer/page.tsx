@@ -3,7 +3,11 @@ import { prisma } from "@/lib/db";
 import { requireOrganizer } from "@/lib/session";
 import { eventStatus, formatDate, formatEventDateTime } from "@/lib/format";
 import { Flash, type SearchParams } from "@/components/Flash";
+import { Icon } from "@/components/Icon";
+import { activityVisual } from "@/lib/activity";
 import { resolveReport } from "../actions/organizer";
+
+export const metadata = { title: "Organizer" };
 
 export default async function OrganizerDashboard({ searchParams }: { searchParams: SearchParams }) {
   const user = await requireOrganizer();
@@ -35,28 +39,34 @@ export default async function OrganizerDashboard({ searchParams }: { searchParam
   return (
     <div className="stack">
       <Flash searchParams={searchParams} />
-      <div className="row between">
-        <h1>Organizer dashboard</h1>
+      <div className="page-head" style={{ marginBottom: 0 }}>
+        <div>
+          <div className="eyebrow"><Icon name="grid" size={15} /> Organizer</div>
+          <h1>Hey {user.name.split(" ")[0]}, here&apos;s your huddle HQ</h1>
+          <p>Create activities, review groups before anyone sees them, and keep an eye on what people want.</p>
+        </div>
         <div className="row">
           <Link href="/organizer/applications" className="btn secondary">
-            Organizer applications{pendingApplications > 0 ? ` (${pendingApplications} waiting)` : ""}
+            <Icon name="user" size={16} /> Applications
+            {pendingApplications > 0 && <span className="badge accent plain">{pendingApplications}</span>}
           </Link>
           <Link href="/organizer/requests" className="btn secondary">
-            Activity requests{newRequests > 0 ? ` (${newRequests} new)` : ""}
+            <Icon name="bulb" size={16} /> Ideas
+            {newRequests > 0 && <span className="badge accent plain">{newRequests} new</span>}
           </Link>
-          <Link href="/organizer/events/new" className="btn">+ Create event</Link>
+          <Link href="/organizer/events/new" className="btn"><Icon name="plus" size={17} /> Create event</Link>
         </div>
       </div>
 
       <div className="stats">
-        <div className="card"><div className="stat">{upcoming.length}</div><div className="muted small">Upcoming events</div></div>
-        <div className="card"><div className="stat">{totalRegs}</div><div className="muted small">Registrations</div></div>
-        <div className="card"><div className="stat">{newRequests}</div><div className="muted small">New activity requests</div></div>
-        <div className="card"><div className="stat">{reports.length}</div><div className="muted small">Open reports</div></div>
+        <div className="card stat-card"><span className="si"><Icon name="calendar" size={20} /></span><div><div className="stat">{upcoming.length}</div><div className="muted small">Upcoming events</div></div></div>
+        <div className="card stat-card ok"><span className="si"><Icon name="ticket" size={20} /></span><div><div className="stat">{totalRegs}</div><div className="muted small">Registrations</div></div></div>
+        <div className="card stat-card info"><span className="si"><Icon name="bulb" size={20} /></span><div><div className="stat">{newRequests}</div><div className="muted small">New activity ideas</div></div></div>
+        <div className="card stat-card warn"><span className="si"><Icon name="flag" size={20} /></span><div><div className="stat">{reports.length}</div><div className="muted small">Open reports</div></div></div>
       </div>
 
       <div className="card">
-        <h2 style={{ marginTop: 0 }}>Your events</h2>
+        <h2 className="card-title"><Icon name="calendar" /> Your events</h2>
         <div className="table-wrap">
           <table>
             <thead>
@@ -82,7 +92,14 @@ export default async function OrganizerDashboard({ searchParams }: { searchParam
                 const preview = e.matchingRuns.some((r) => r.status === "PREVIEW");
                 return (
                   <tr key={e.id}>
-                    <td><Link href={`/organizer/events/${e.id}`}>{e.title}</Link></td>
+                    <td>
+                      <Link href={`/organizer/events/${e.id}`} className="cell-title" style={{ color: "var(--text)" }}>
+                        <span className="emoji-tile tint" style={{ ["--h" as string]: activityVisual(e.activity).hue }}>
+                          {activityVisual(e.activity).emoji}
+                        </span>
+                        {e.title}
+                      </Link>
+                    </td>
                     <td>{formatEventDateTime(e.startsAt, e.timeZone)}</td>
                     <td>{e.registrations.length} / {e.capacity}</td>
                     <td>
@@ -99,7 +116,7 @@ export default async function OrganizerDashboard({ searchParams }: { searchParam
 
       {reports.length > 0 && (
         <div className="card">
-          <h2 style={{ marginTop: 0 }}>Open reports</h2>
+          <h2 className="card-title"><Icon name="flag" /> Open reports</h2>
           {reports.map((r) => (
             <div key={r.id} className="member row between">
               <div>

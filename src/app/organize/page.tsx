@@ -5,7 +5,10 @@ import { formatDate } from "@/lib/format";
 import { APPLICATION_LIMITS, onboardingState } from "@/lib/organizers";
 import { Flash, type SearchParams } from "@/components/Flash";
 import { FormMemory } from "@/components/FormMemory";
+import { Icon } from "@/components/Icon";
 import { applyToOrganize } from "../actions/onboarding";
+
+export const metadata = { title: "Host events" };
 
 export default async function OrganizePage({ searchParams }: { searchParams: SearchParams }) {
   const user = await requireUser();
@@ -20,6 +23,7 @@ export default async function OrganizePage({ searchParams }: { searchParams: Sea
       <div className="stack">
         <Flash searchParams={searchParams} />
         <div>
+          <div className="eyebrow"><Icon name="sparkles" size={15} /> Host on Huddle Up</div>
           <h1>Become an organizer</h1>
           <p className="muted">
             Organizers create events, choose group sizes, and review the groups the app suggests before anyone sees
@@ -107,14 +111,14 @@ export default async function OrganizePage({ searchParams }: { searchParams: Sea
         )}
       </div>
 
-      <div className="card">
-        <h2 style={{ marginTop: 0 }}>What organizers do</h2>
-        <ul className="small" style={{ paddingLeft: "1.1rem", margin: 0 }}>
-          <li>Create events with a time, area, meeting point and group size.</li>
-          <li>Preview suggested groups and publish them when they look right.</li>
-          <li>Read activity requests to see what people want to do.</li>
-          <li>Handle reports about their events.</li>
-        </ul>
+      <div className="card sticky">
+        <h2 className="card-title"><Icon name="grid" /> What organizers do</h2>
+        <div className="steps" style={{ marginTop: 0 }}>
+          <div><span className="emoji-tile" aria-hidden="true">📅</span><div><strong>Create events</strong><span>Time, area, meeting point and group size.</span></div></div>
+          <div><span className="emoji-tile" aria-hidden="true">🧩</span><div><strong>Review groups</strong><span>Preview suggested groups and publish when they look right.</span></div></div>
+          <div><span className="emoji-tile" aria-hidden="true">💡</span><div><strong>Follow demand</strong><span>See what members are asking to do.</span></div></div>
+          <div><span className="emoji-tile" aria-hidden="true">🛡️</span><div><strong>Keep it safe</strong><span>Handle reports about your events.</span></div></div>
+        </div>
         <p className="small muted" style={{ margin: "0.75rem 0 0" }}>
           Organizers can see attendees&apos; names and shared interests for their own events, but never email addresses.
         </p>
