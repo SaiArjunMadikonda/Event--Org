@@ -34,6 +34,17 @@ client whose redirect URI is `https://<project-ref>.supabase.co/auth/v1/callback
 
 `DEMO_LOGIN="true"` adds a picker for the fictional seed accounts. Keep it off anywhere real people use the site.
 
+### Hosting (Vercel)
+
+Live at **https://huddle-up-pi.vercel.app**. The Vercel project `huddle-up` is connected to this repository, so every
+push to `main` redeploys it. [vercel.json](vercel.json) runs the server code in `cle1` (Cleveland), next to the
+Supabase database in us-east-2.
+
+The hosted site's settings live in Vercel → **Settings** → **Environment Variables**: the same keys as `.env.example`,
+with `DEMO_LOGIN="false"` and the first organizer in `ORGANIZER_EMAILS`. After changing one, redeploy for it to take
+effect. Supabase → **Authentication** → **URL Configuration** has the live address as the Site URL and
+`https://huddle-up-pi.vercel.app/auth/callback` as a redirect URL.
+
 ### Organizers
 
 New accounts start as participants. To become an organizer, a participant applies from **Host events**, and any
